@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { socket } from '@/lib/socket';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -28,6 +29,29 @@ export default function CandidatesPage() {
       }
     };
     fetchCandidates();
+    
+    // Connect to WebSockets for real-time updates
+    socket.connect();
+    
+    socket.on('candidate:new', (newCandidate) => {
+      setCandidates((prev) => {
+        // Only add if it doesn't already exist
+        if (prev.find(c => c._id === newCandidate._id)) return prev;
+        return [newCandidate, ...prev];
+      });
+    });
+
+    socket.on('candidate:updated', (updatedCandidate) => {
+      setCandidates((prev) =>
+        prev.map((c) => (c._id === updatedCandidate._id ? updatedCandidate : c))
+      );
+    });
+
+    return () => {
+      socket.off('candidate:new');
+      socket.off('candidate:updated');
+      socket.disconnect();
+    };
   }, []);
 
   const getStatusColor = (status) => {

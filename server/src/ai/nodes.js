@@ -6,6 +6,7 @@ const { z } = require('zod');
 const specs = require('../utils/spec-loader');
 const Candidate = require('../models/Candidate');
 const Job = require('../models/Job');
+const socket = require('../utils/socket');
 
 // Ensure Groq is instantiated
 const getModel = () => {
@@ -120,10 +121,16 @@ const shortlistingAgentNode = async (state) => {
     }
 
     // Update MongoDB
-    await Candidate.findByIdAndUpdate(state.candidateId, {
+    const updatedCandidate = await Candidate.findByIdAndUpdate(state.candidateId, {
       match_score: score,
       status: decision
-    });
+    }, { new: true });
+
+    try {
+      socket.getIO().emit('candidate:updated', updatedCandidate);
+    } catch (e) {
+      console.log('Socket emit failed in shortlisting agent');
+    }
 
     return { status: decision };
   } catch (error) {

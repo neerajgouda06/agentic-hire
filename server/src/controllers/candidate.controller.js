@@ -1,5 +1,6 @@
 const candidateService = require('../services/candidate.service');
 const { workflowApp } = require('../ai/workflow');
+const socket = require('../utils/socket');
 
 const uploadCandidate = async (req, res) => {
   try {
@@ -18,6 +19,13 @@ const uploadCandidate = async (req, res) => {
     };
 
     const candidate = await candidateService.createCandidate(candidateData);
+    
+    // Broadcast new candidate immediately
+    try {
+      socket.getIO().emit('candidate:new', candidate);
+    } catch (e) {
+      console.log('Socket not initialized or failed to emit');
+    }
     
     // Auto-start workflow logic asynchronously (don't await so UI doesn't block)
     workflowApp.invoke({

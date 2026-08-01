@@ -8,8 +8,11 @@ const authRoutes = require('./src/routes/auth.routes');
 const jobRoutes = require('./src/routes/job.routes');
 const candidateRoutes = require('./src/routes/candidate.routes');
 const path = require('path');
+const http = require('http');
+const socket = require('./src/utils/socket');
 
 const app = express();
+const server = http.createServer(app);
 
 // Connect to MongoDB
 connectDB();
@@ -18,6 +21,15 @@ connectDB();
 app.use(helmet({ crossOriginResourcePolicy: false })); // Allow serving PDFs across origin if needed
 app.use(cors());
 app.use(express.json());
+
+// Initialize Socket.io
+const io = socket.init(server);
+io.on('connection', (socket) => {
+  console.log('Client connected to socket:', socket.id);
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
 
 // Serve uploads folder statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -33,6 +45,6 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
