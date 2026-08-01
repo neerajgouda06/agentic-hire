@@ -1,4 +1,5 @@
 const candidateService = require('../services/candidate.service');
+const { workflowApp } = require('../ai/workflow');
 
 const uploadCandidate = async (req, res) => {
   try {
@@ -8,7 +9,6 @@ const uploadCandidate = async (req, res) => {
 
     const resume_url = `/uploads/${req.file.filename}`;
     
-    // In Phase 2, we just save it. In Phase 3/4, we will parse it.
     const candidateData = {
       name: req.body.name,
       email: req.body.email,
@@ -19,10 +19,19 @@ const uploadCandidate = async (req, res) => {
 
     const candidate = await candidateService.createCandidate(candidateData);
     
-    // Auto-start workflow logic will go here in next phases
+    // Auto-start workflow logic asynchronously (don't await so UI doesn't block)
+    workflowApp.invoke({
+      candidateId: candidate._id.toString(),
+      jobId: req.body.job_id,
+      resumePath: resume_url
+    }).then(() => {
+      console.log(`[LangGraph] Workflow completed for candidate ${candidate._id}`);
+    }).catch((err) => {
+      console.error(`[LangGraph] Workflow failed for candidate ${candidate._id}:`, err);
+    });
     
     res.status(201).json({
-      message: 'Candidate uploaded successfully',
+      message: 'Candidate uploaded successfully. AI processing started.',
       candidate
     });
   } catch (error) {
