@@ -1,0 +1,4 @@
+{
+  "subject": "Interview Invitation: {{job_title}} at AgentHire",
+  "body": "Dear {{candidate_name}},\n\nCongratulations! We were impressed by your background and would like to invite you to an interview for the {{job_title}} position.\n\nNext Steps:\n{{next_steps}}\n\nBest regards,\nThe AgentHire Team"
+}

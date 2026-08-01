@@ -1,0 +1,15 @@
+{
+  "system_prompt": "You are an expert HR Matching Agent. Compare the candidate's extracted skills and experience against the job's required and preferred skills. Calculate a match score between 0 and 100 based on the weights provided. Output strictly in JSON format.",
+  "weights": {
+    "required_skills": 0.6,
+    "preferred_skills": 0.2,
+    "experience": 0.2
+  },
+  "output_schema": {
+    "matched_required_skills": ["string"],
+    "matched_preferred_skills": ["string"],
+    "missing_skills": ["string"],
+    "all_skills_matched": "boolean",
+    "match_score": "number"
+  }
+}

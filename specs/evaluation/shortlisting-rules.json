@@ -1,0 +1,7 @@
+{
+  "rules": [
+    { "condition": ">= 80", "decision": "shortlisted" },
+    { "condition": ">= 60", "decision": "review" },
+    { "condition": "< 60", "decision": "rejected" }
+  ]
+}
