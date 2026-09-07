@@ -12,7 +12,9 @@ const createJob = async (req, res) => {
 
 const getJobs = async (req, res) => {
   try {
-    const jobs = await jobService.getJobs();
+    // If authenticated, return only jobs created by this user unless public query is requested
+    const filter = req.user ? { creator: req.user.id } : {};
+    const jobs = await jobService.getJobs(filter);
     res.status(200).json(jobs);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -33,6 +35,13 @@ const getJobById = async (req, res) => {
 
 const updateJob = async (req, res) => {
   try {
+    const existing = await jobService.getJobById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+    if (existing.creator.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Unauthorized to update this job' });
+    }
     const job = await jobService.updateJob(req.params.id, req.body);
     res.status(200).json(job);
   } catch (error) {
@@ -42,12 +51,20 @@ const updateJob = async (req, res) => {
 
 const deleteJob = async (req, res) => {
   try {
+    const existing = await jobService.getJobById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+    if (existing.creator.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Unauthorized to delete this job' });
+    }
     await jobService.deleteJob(req.params.id);
     res.status(200).json({ message: 'Job deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 module.exports = {
   createJob,

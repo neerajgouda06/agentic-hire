@@ -47,9 +47,19 @@ const uploadCandidate = async (req, res) => {
   }
 };
 
+const Candidate = require('../models/Candidate');
+const Job = require('../models/Job');
+
 const getCandidates = async (req, res) => {
   try {
-    const candidates = await candidateService.getCandidates();
+    // Multi-tenancy: Only return candidates who applied to jobs created by this user
+    let filter = {};
+    if (req.user && req.user.role !== 'admin') {
+      const myJobs = await Job.find({ creator: req.user.id }).select('_id');
+      const myJobIds = myJobs.map(j => j._id);
+      filter = { job_id: { $in: myJobIds } };
+    }
+    const candidates = await candidateService.getCandidates(filter);
     res.status(200).json(candidates);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -62,6 +72,12 @@ const getCandidateById = async (req, res) => {
     if (!candidate) {
       return res.status(404).json({ message: 'Candidate not found' });
     }
+    if (req.user && req.user.role !== 'admin') {
+      const job = await Job.findById(candidate.job_id);
+      if (!job || job.creator.toString() !== req.user.id) {
+        return res.status(403).json({ message: 'Unauthorized to view this candidate' });
+      }
+    }
     res.status(200).json(candidate);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -70,6 +86,16 @@ const getCandidateById = async (req, res) => {
 
 const deleteCandidate = async (req, res) => {
   try {
+    const candidate = await Candidate.findById(req.params.id);
+    if (!candidate) {
+      return res.status(404).json({ message: 'Candidate not found' });
+    }
+    if (req.user && req.user.role !== 'admin') {
+      const job = await Job.findById(candidate.job_id);
+      if (!job || job.creator.toString() !== req.user.id) {
+        return res.status(403).json({ message: 'Unauthorized to delete this candidate' });
+      }
+    }
     await candidateService.deleteCandidate(req.params.id);
     res.status(200).json({ message: 'Candidate deleted successfully' });
   } catch (error) {
@@ -83,3 +109,4 @@ module.exports = {
   getCandidateById,
   deleteCandidate,
 };
+

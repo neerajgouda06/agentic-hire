@@ -7,8 +7,12 @@ const { protect, recruiter } = require('../middleware/auth.middleware');
 // GET /analytics - Candidate and workflow statistics
 router.get('/', protect, recruiter, async (req, res) => {
   try {
-    const totalJobs = await Job.countDocuments();
-    const candidates = await Candidate.find();
+    const jobFilter = req.user.role === 'admin' ? {} : { creator: req.user.id };
+    const myJobs = await Job.find(jobFilter).select('_id');
+    const myJobIds = myJobs.map(j => j._id);
+
+    const totalJobs = myJobs.length;
+    const candidates = await Candidate.find({ job_id: { $in: myJobIds } });
     
     const totalCandidates = candidates.length;
     const shortlistedCount = candidates.filter(c => c.status === 'shortlisted' || c.status === 'hired').length;
@@ -23,6 +27,7 @@ router.get('/', protect, recruiter, async (req, res) => {
     const avgScore = totalCandidates > 0 
       ? Math.round(candidates.reduce((acc, c) => acc + (c.match_score || 0), 0) / totalCandidates) 
       : 0;
+
 
     res.json({
       totalJobs,

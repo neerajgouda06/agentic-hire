@@ -32,4 +32,18 @@ const recruiter = (req, res, next) => {
 };
 
 
-module.exports = { protect, recruiter };
+const optionalAuth = async (req, res, next) => {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select('-password');
+    } catch (e) {
+      // Ignore token errors for optional auth
+    }
+  }
+  next();
+};
+
+module.exports = { protect, recruiter, optionalAuth };
+

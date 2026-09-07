@@ -1,10 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const Candidate = require('../models/Candidate');
+const Job = require('../models/Job');
 const { runPostApprovalWorkflow } = require('../ai/workflow');
 const socket = require('../utils/socket');
 const { protect, recruiter } = require('../middleware/auth.middleware');
 const { workflowApp } = require('../ai/workflow');
+
+// Helper to check if candidate belongs to recruiter
+const verifyCandidateOwnership = async (candidate, user) => {
+  if (user.role === 'admin') return true;
+  const job = await Job.findById(candidate.job_id);
+  if (!job || job.creator.toString() !== user.id) {
+    return false;
+  }
+  return true;
+};
 
 // POST /workflow/start - Manually start workflow for a candidate
 router.post('/start', protect, recruiter, async (req, res) => {
@@ -17,6 +28,11 @@ router.post('/start', protect, recruiter, async (req, res) => {
     const candidate = await Candidate.findById(candidate_id);
     if (!candidate) {
       return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    const isOwner = await verifyCandidateOwnership(candidate, req.user);
+    if (!isOwner) {
+      return res.status(403).json({ error: 'Unauthorized: Candidate belongs to another recruiter' });
     }
 
     workflowApp.invoke({
@@ -42,6 +58,11 @@ router.post('/retry', protect, recruiter, async (req, res) => {
     const candidate = await Candidate.findById(candidate_id);
     if (!candidate) {
       return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    const isOwner = await verifyCandidateOwnership(candidate, req.user);
+    if (!isOwner) {
+      return res.status(403).json({ error: 'Unauthorized: Candidate belongs to another recruiter' });
     }
 
     candidate.status = 'pending';
@@ -72,6 +93,11 @@ router.post('/approve', protect, recruiter, async (req, res) => {
       return res.status(404).json({ error: 'Candidate not found' });
     }
 
+    const isOwner = await verifyCandidateOwnership(candidate, req.user);
+    if (!isOwner) {
+      return res.status(403).json({ error: 'Unauthorized: Candidate belongs to another recruiter' });
+    }
+
     candidate.status = decision;
     await candidate.save();
 
@@ -100,12 +126,17 @@ router.post('/approve', protect, recruiter, async (req, res) => {
 
 // GET /workflow/:id - Get candidate workflow details
 router.get('/:id', protect, recruiter, async (req, res) => {
-
   try {
     const candidate = await Candidate.findById(req.params.id).populate('job_id');
     if (!candidate) {
       return res.status(404).json({ error: 'Workflow/Candidate not found' });
     }
+
+    const isOwner = await verifyCandidateOwnership(candidate, req.user);
+    if (!isOwner) {
+      return res.status(403).json({ error: 'Unauthorized: Candidate belongs to another recruiter' });
+    }
+
 
     const nodes = [
       { id: 'resume_parser', label: 'Resume Parser', status: candidate.parsed_resume_json ? 'success' : 'pending' },
