@@ -9,24 +9,27 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-password');
-      next();
+      if (!req.user) {
+        return res.status(401).json({ message: 'User account no longer exists' });
+      }
+      return next();
     } catch (error) {
-      console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('[Auth Error]:', error.message);
+      return res.status(401).json({ message: 'Not authorized, token invalid or expired' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ message: 'Not authorized, no token provided' });
   }
 };
 
 const recruiter = (req, res, next) => {
-  if (req.user && req.user.role === 'recruiter') {
-    next();
-  } else {
-    res.status(403).json({ message: 'Not authorized as a recruiter' });
+  if (req.user && (req.user.role === 'recruiter' || req.user.role === 'admin')) {
+    return next();
   }
+  return res.status(403).json({ message: 'Access denied: recruiter privileges required' });
 };
+
 
 module.exports = { protect, recruiter };

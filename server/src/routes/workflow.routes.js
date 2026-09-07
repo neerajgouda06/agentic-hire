@@ -3,11 +3,11 @@ const router = express.Router();
 const Candidate = require('../models/Candidate');
 const { runPostApprovalWorkflow } = require('../ai/workflow');
 const socket = require('../utils/socket');
-const { protect } = require('../middleware/auth.middleware');
+const { protect, recruiter } = require('../middleware/auth.middleware');
 const { workflowApp } = require('../ai/workflow');
 
 // POST /workflow/start - Manually start workflow for a candidate
-router.post('/start', protect, async (req, res) => {
+router.post('/start', protect, recruiter, async (req, res) => {
   try {
     const { candidate_id } = req.body;
     if (!candidate_id) {
@@ -32,7 +32,7 @@ router.post('/start', protect, async (req, res) => {
 });
 
 // POST /workflow/retry - Retry a failed workflow for a candidate
-router.post('/retry', protect, async (req, res) => {
+router.post('/retry', protect, recruiter, async (req, res) => {
   try {
     const { candidate_id } = req.body;
     if (!candidate_id) {
@@ -60,7 +60,7 @@ router.post('/retry', protect, async (req, res) => {
 });
 
 // POST /workflow/approve - Approve or reject candidate in human approval stage
-router.post('/approve', protect, async (req, res) => {
+router.post('/approve', protect, recruiter, async (req, res) => {
   try {
     const { candidate_id, decision } = req.body; // decision: 'shortlisted' | 'rejected'
     if (!candidate_id || !decision) {
@@ -99,7 +99,8 @@ router.post('/approve', protect, async (req, res) => {
 });
 
 // GET /workflow/:id - Get candidate workflow details
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, recruiter, async (req, res) => {
+
   try {
     const candidate = await Candidate.findById(req.params.id).populate('job_id');
     if (!candidate) {

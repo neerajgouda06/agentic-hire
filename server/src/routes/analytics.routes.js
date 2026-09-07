@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Candidate = require('../models/Candidate');
 const Job = require('../models/Job');
-const { protect } = require('../middleware/auth.middleware');
+const { protect, recruiter } = require('../middleware/auth.middleware');
 
 // GET /analytics - Candidate and workflow statistics
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, recruiter, async (req, res) => {
   try {
     const totalJobs = await Job.countDocuments();
     const candidates = await Candidate.find();
