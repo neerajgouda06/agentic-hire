@@ -1,6 +1,8 @@
 import { io } from 'socket.io-client';
 
-// 'http://localhost:5000' should match backend URL
-export const socket = io('http://localhost:5000', {
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+export const socket = io(SOCKET_URL, {
   autoConnect: false, // Prevents automatic connection until we manually call connect()
 });
+

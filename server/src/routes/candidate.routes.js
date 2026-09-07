@@ -1,5 +1,5 @@
 const express = require('express');
-const { uploadCandidate, getCandidates, getCandidateById } = require('../controllers/candidate.controller');
+const { uploadCandidate, getCandidates, getCandidateById, deleteCandidate } = require('../controllers/candidate.controller');
 const upload = require('../middleware/upload.middleware');
 const { validateRequest } = require('../validators/auth.validator');
 const { createCandidateSchema } = require('../validators/candidate.validator');
@@ -19,5 +19,6 @@ router.post('/upload', upload.single('resume'), (req, res, next) => {
 
 router.get('/', protect, recruiter, getCandidates);
 router.get('/:id', protect, recruiter, getCandidateById);
+router.delete('/:id', protect, recruiter, deleteCandidate);
 
 module.exports = router;

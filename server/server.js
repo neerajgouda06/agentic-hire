@@ -7,6 +7,8 @@ const connectDB = require('./src/config/db');
 const authRoutes = require('./src/routes/auth.routes');
 const jobRoutes = require('./src/routes/job.routes');
 const candidateRoutes = require('./src/routes/candidate.routes');
+const workflowRoutes = require('./src/routes/workflow.routes');
+const analyticsRoutes = require('./src/routes/analytics.routes');
 const path = require('path');
 const http = require('http');
 const socket = require('./src/utils/socket');
@@ -32,12 +34,14 @@ io.on('connection', (socket) => {
 });
 
 // Serve uploads folder statically
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/auth', authRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/candidates', candidateRoutes);
+app.use('/workflow', workflowRoutes);
+app.use('/analytics', analyticsRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });

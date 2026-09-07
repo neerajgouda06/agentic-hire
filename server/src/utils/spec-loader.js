@@ -1,7 +1,22 @@
 const fs = require('fs');
 const path = require('path');
 
-const SPECS_DIR = path.join(__dirname, '../../../specs'); // relative from server/src/utils
+const getSpecsDir = () => {
+  const candidateDirs = [
+    path.join(__dirname, '../../../specs'),
+    path.join(__dirname, '../../specs'),
+    path.join(process.cwd(), 'specs'),
+    path.join(process.cwd(), '../specs'),
+  ];
+  for (const dir of candidateDirs) {
+    if (fs.existsSync(dir)) {
+      return dir;
+    }
+  }
+  return path.join(__dirname, '../../../specs');
+};
+
+const SPECS_DIR = getSpecsDir();
 
 const loadSpec = (specPath) => {
   try {
@@ -16,6 +31,7 @@ const loadSpec = (specPath) => {
     throw error;
   }
 };
+
 
 const getHiringSpec = (roleFile) => {
   // roleFile could be "frontend-developer.json" or just "frontend-developer"

@@ -1,0 +1,13 @@
+{
+  "system_prompt": "You are an expert HR Resume Parser. Extract the candidate's name, email, phone, skills, experience (in years), education, and projects from the provided resume text. Output the result strictly in JSON format.",
+  "temperature": 0.1,
+  "output_schema": {
+    "name": "string",
+    "email": "string",
+    "phone": "string",
+    "skills": ["string"],
+    "experience_years": "number",
+    "education": ["string"],
+    "projects": ["string"]
+  }
+}

@@ -1,5 +1,5 @@
 const express = require('express');
-const { createJob, getJobs, getJobById, updateJob } = require('../controllers/job.controller');
+const { createJob, getJobs, getJobById, updateJob, deleteJob } = require('../controllers/job.controller');
 const { validateRequest } = require('../validators/auth.validator'); // Reusing the validator middleware wrapper
 const { createJobSchema } = require('../validators/job.validator');
 const { protect, recruiter } = require('../middleware/auth.middleware');
@@ -12,6 +12,7 @@ router.route('/')
 
 router.route('/:id')
   .get(getJobById) // Public
-  .put(protect, recruiter, validateRequest(createJobSchema), updateJob);
+  .put(protect, recruiter, validateRequest(createJobSchema), updateJob)
+  .delete(protect, recruiter, deleteJob);
 
 module.exports = router;

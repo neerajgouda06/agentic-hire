@@ -1,0 +1,4 @@
+{
+  "subject": "Update on your application for {{job_title}} at AgentHire",
+  "body": "Dear {{candidate_name}},\n\nThank you for taking the time to apply for the {{job_title}} position. After careful consideration, we have decided not to move forward with your application at this time.\n\nWe will keep your resume on file for future opportunities that may be a better fit.\n\nBest regards,\nThe AgentHire Team"
+}

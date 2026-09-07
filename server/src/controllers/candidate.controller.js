@@ -68,8 +68,18 @@ const getCandidateById = async (req, res) => {
   }
 };
 
+const deleteCandidate = async (req, res) => {
+  try {
+    await candidateService.deleteCandidate(req.params.id);
+    res.status(200).json({ message: 'Candidate deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   uploadCandidate,
   getCandidates,
   getCandidateById,
+  deleteCandidate,
 };

@@ -40,9 +40,19 @@ const updateJob = async (req, res) => {
   }
 };
 
+const deleteJob = async (req, res) => {
+  try {
+    await jobService.deleteJob(req.params.id);
+    res.status(200).json({ message: 'Job deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createJob,
   getJobs,
   getJobById,
   updateJob,
+  deleteJob,
 };
