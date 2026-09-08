@@ -17,7 +17,7 @@ const socket = require('./src/utils/socket');
 const app = express();
 const server = http.createServer(app);
 
-// Connect to MongoDB
+// Connection for MongoDB
 connectDB();
 
 // Middleware
